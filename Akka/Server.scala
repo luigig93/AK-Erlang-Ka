@@ -1,6 +1,6 @@
 package basic
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ ActorRef, ActorSystem, Behavior}
+import akka.actor.typed.{ ActorRef, ActorSystem, Behavior, Terminated}
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.receptionist.ServiceKey
 
@@ -26,15 +26,17 @@ object Server {
     }
 
   def updatePlaces(places: List[ActorRef[Luogo.Command]]): Behavior[Command] =
-    Behaviors.receiveMessage {
-      case NewPlace(place) =>
+    Behaviors.receive[Command] {
+      case (ctx, NewPlace(place)) =>
+        ctx.watch(place)
         updatePlaces(place::places)
 
-      case GetPlaces(replyTo) =>
+      case (_, GetPlaces(replyTo)) =>
         replyTo ! Utente.Places(places)
         updatePlaces(places)
 
-      case ExitPlace(place) =>
+    }.receiveSignal {
+      case (_, Terminated(place)) =>
         updatePlaces(places.filter(_ != place))
     }
 
