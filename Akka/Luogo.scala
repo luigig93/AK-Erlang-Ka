@@ -60,8 +60,7 @@ object Luogo {
   def updateVisitors(currentVisitors: List[ActorRef[Utente.Command]]): Behavior[Command] =
     Behaviors
       // quando si concatenano metodi è fondamentale il parametro di tipo!
-      .receive[Command] { (ctx, msg) =>
-        msg match {
+      .receiveMessage[Command] {
           case BeginVisit(newVisitor) =>
             findContacts(newVisitor, currentVisitors)
             if(placeClosing()) {
@@ -72,10 +71,9 @@ object Luogo {
 
           case EndVisit(visitor) =>
             updateVisitors(currentVisitors.filter(_ != visitor))
-        }
     }
     .receiveSignal {
-        case (ctx, Terminated(server)) =>
+        case (_, Terminated(server)) =>
           Behaviors.stopped
       }
 
