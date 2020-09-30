@@ -33,8 +33,8 @@ object Ospedale {
     }
 
   def loop(): Behavior[Command] =
-    Behaviors.receive {
-      case (ctx, TestMe(user)) =>
+    Behaviors.receiveMessage {
+      case TestMe(user) =>
         testUser(user)
         loop()
     }
