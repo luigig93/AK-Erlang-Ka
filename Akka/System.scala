@@ -1,7 +1,6 @@
 package basic
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, ActorSystem, Behavior}
-import akka.actor.typed.DispatcherSelector
 
 object System {
   // messages
@@ -19,10 +18,7 @@ object System {
         ctx.spawn(Server(), name="server")
         ctx.spawn(Ospedale(), name="hospital")
         (1 to numOfPlaces).foreach(index => ctx.spawn(Luogo(), name=s"place$index"))
-        // gli utenti contengono delle Thread.sleep(), hanno bisogno di thread dedicati
-        // fondamentale usare un dispatcher dedicato, altrimenti si bloccano tutti gli altri attori
-        // gli altri attori usano il dispatcher di default e vengono quindi eseguiti con un pool di thread
-        (1 to numOfUsers).foreach(index => ctx.spawn(Utente(), name=s"user$index",DispatcherSelector.blocking()))
+        (1 to numOfUsers).foreach(index => ctx.spawn(Utente(), name=s"user$index"))
         loop()
 
       case (ctx, Stop) =>

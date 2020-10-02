@@ -27,19 +27,23 @@ object Ospedale {
   // behaviours
   def start(): Behavior[Command] =
     Behaviors.setup { ctx =>
+      //ctx.log.info("Hospital online...")
       // register: part1
       ctx.system.receptionist ! Receptionist.Register(hospitalServiceKey, ctx.self)
       loop()
     }
 
   def loop(): Behavior[Command] =
-    Behaviors.receiveMessage {
-      case TestMe(user) =>
+    Behaviors.receive {
+      case (ctx, TestMe(user)) =>
+        //ctx.log.info(s"test me: ${user.path}")
+        println(s"HOSPITAL >> USER:${user.path} >> TESTME")
         testUser(user)
         loop()
     }
 
   // entry point
   def apply(): Behavior[Command] =
+    //Behaviors.logMessages(start())
     start()
 }

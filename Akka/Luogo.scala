@@ -2,7 +2,6 @@ package basic
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
-
 import scala.util.Random
 
 
@@ -43,6 +42,7 @@ object Luogo {
   // behaviours
   def luogo(): Behavior[Command] =
     Behaviors.setup { ctx =>
+      //ctx.log.info(s"luogo online: ${ctx.self.path}")
       // whereis: part0
       val listingResponseAdapter = ctx.messageAdapter[Receptionist.Listing](ListingResponse)
       ctx.system.receptionist ! Receptionist.Find(Server.serverServiceKey, listingResponseAdapter)
@@ -60,25 +60,33 @@ object Luogo {
   def updateVisitors(currentVisitors: List[ActorRef[Utente.Command]]): Behavior[Command] =
     Behaviors
       // quando si concatenano metodi è fondamentale il parametro di tipo!
-      .receiveMessage[Command] {
-          case BeginVisit(newVisitor) =>
+      .receive[Command] {
+          case (ctx, BeginVisit(newVisitor)) =>
+            //ctx.log.info(s"begin visit: ${newVisitor.path}")
+            println(s"PLACE:${ctx.self.path} >> USER:${newVisitor.path} >> BEGINVISIT")
             findContacts(newVisitor, currentVisitors)
             if(placeClosing()) {
+              //ctx.log.info(s"place closing: ${ctx.self.path}")
+              println(s"PLACE:${ctx.self.path} >> TERMINATED")
               Behaviors.stopped
             } else {
               updateVisitors(newVisitor::currentVisitors)
             }
 
-          case EndVisit(visitor) =>
+          case (ctx, EndVisit(visitor)) =>
+            //ctx.log.info(s"end visit: ${visitor.path}")
+            println(s"PLACE:${ctx.self.path} >> USER:${visitor.path} >> ENDVISIT")
             updateVisitors(currentVisitors.filter(_ != visitor))
     }
     .receiveSignal {
-        case (_, Terminated(server)) =>
+        case (ctx, Terminated(server)) =>
+          //ctx.log.info("server offline...")
           Behaviors.stopped
       }
 
   // entry point
   def apply(): Behavior[Command] = {
+    //Behaviors.logMessages(luogo())
     luogo()
   }
 }
