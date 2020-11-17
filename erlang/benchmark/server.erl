@@ -20,7 +20,11 @@ start(Mode, N) ->
 			erlang:spawn(fun () -> dispatcher_akka:start(N) end);
 		
 		workers ->
-			worker_akka:start(N)
+			worker_akka:start(N);
+	
+		mix -> % S = DE + 2WE + WA
+			erlang:spawn(fun () -> dispatcher_mix:start(N) end),
+			worker_erlang:start(N-1)
 	end.
 	
 	
